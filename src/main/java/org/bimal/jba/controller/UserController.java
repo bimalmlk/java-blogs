@@ -2,7 +2,9 @@ package org.bimal.jba.controller;
 
 import java.security.Principal;
 
+import org.bimal.jba.entities.Blog;
 import org.bimal.jba.entities.User;
+import org.bimal.jba.service.BlogService;
 import org.bimal.jba.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
@@ -15,8 +17,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
 public class UserController {
-	
-	
+
+	@Autowired
+	private BlogService blogService;
 	
 	@Autowired
 	private UserService userService;
@@ -25,9 +28,15 @@ public class UserController {
 	
 	
 	@ModelAttribute("user")
-	public User construct()
+	public User constructUser()
 	{
 		return new User();
+	}
+	
+	@ModelAttribute("blog")
+	public Blog constructBlog()
+	{
+		return new Blog();
 	}
 	@RequestMapping("/users")
 	public String users(Model model){
@@ -57,4 +66,17 @@ public class UserController {
 		model.addAttribute("user", userService.findOneWithBlogs(name));
 		return "user-details";
 	}
+	@RequestMapping(value="/account", method=RequestMethod.POST)
+	public String doAddBlogs(@ModelAttribute("blog") Blog blog, Principal principal)
+	{
+		String name = principal.getName();
+		blogService.save(blog, name);
+		return "redirect:/account.html";
+	}
+	@RequestMapping("/blog/remove/{id}")
+	public String removeBlog(@PathVariable int id){
+		blogService.delete(id);
+		return "redirect:/account.html";
+	}
+	
 }
